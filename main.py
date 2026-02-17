@@ -7,53 +7,58 @@ from pytgcalls.types import MediaStream
 import yt_dlp
 from config import API_ID, API_HASH, BOT_TOKEN, SESSION_STRING
 
-# --- 1. Clients Setup ---
+# --- Clients Setup ---
 bot = Client("MusicBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 user = Client("MusicAssistant", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
 call_py = PyTgCalls(user)
 
-# --- 2. Direct YouTube Downloader (No API) ---
-def get_audio_url(link):
+# --- Smart Downloader (Link ya Search dono chalega) ---
+def get_audio_url(query):
     opts = {
         'format': 'bestaudio/best',
         'quiet': True,
         'noplaylist': True,
         'geo_bypass': True,
-        # Agar cookies file hai to yahan path dena padega future mein
     }
+    
+    # Agar Link nahi hai, toh YouTube par Search karo
+    if not query.startswith("http"):
+        query = f"ytsearch:{query}"
+
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(link, download=False)
+        info = ydl.extract_info(query, download=False)
+        
+        # Agar search result hai, toh pehla video uthao
+        if 'entries' in info:
+            info = info['entries'][0]
+            
         return info['url'], info.get('title', 'Unknown Song')
 
-# --- 3. Play Command (/play link) ---
+# --- Play Command ---
 @bot.on_message(filters.command("play") & filters.group)
 async def play_music(client, message: Message):
     if not message.reply_to_message and len(message.command) < 2:
-        return await message.reply_text("Bhai link to de! Example: /play https://youtube.com/...")
+        return await message.reply_text("Example: /play Believer")
 
     query = message.text.split(None, 1)[1]
     chat_id = message.chat.id
     
-    await message.reply_text(f"🔍 **Searching:** `{query}`")
+    msg = await message.reply_text(f"🔍 **Searching:** `{query}`")
 
     try:
-        # Link nikal rahe hain (Direct)
         stream_url, title = get_audio_url(query)
         
-        await message.reply_text(f"▶️ **Playing:** {title}")
+        await msg.edit_text(f"▶️ **Playing:** {title}")
 
-        # Call join kar rahe hain
         await call_py.play(
             chat_id,
-            MediaStream(
-                stream_url,
-            )
+            MediaStream(stream_url)
         )
     except Exception as e:
-        await message.reply_text(f"❌ **Error:** {e}")
+        await msg.edit_text(f"❌ **Error:** {e}")
 
-# --- 4. Start Bot ---
+# --- Start Bot ---
 async def start_bot():
     print("Bot Starting...")
     await bot.start()
