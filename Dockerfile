@@ -1,6 +1,6 @@
-FROM python:3.10-slim-buster
+FROM python:3.10-slim-bookworm
 
-# System tools install kar rahe hain
+# System update aur FFmpeg install
 RUN apt-get update -y && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends ffmpeg git \
     && apt-get clean \
@@ -9,7 +9,7 @@ RUN apt-get update -y && apt-get upgrade -y \
 COPY . /app/
 WORKDIR /app/
 
-# Python libraries install
+# Python requirements install
 RUN pip3 install --no-cache-dir --upgrade pip
 RUN pip3 install --no-cache-dir --upgrade --requirement requirements.txt
 
