@@ -1,11 +1,11 @@
 FROM python:3.10-slim-bookworm
 
-# System update aur FFmpeg install
+# System update + FFmpeg + Node.js (Zaroori hai!)
 RUN apt-get update -y && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends ffmpeg git \
+    && apt-get install -y --no-install-recommends ffmpeg git nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-#akown
+
 COPY . /app/
 WORKDIR /app/
 
