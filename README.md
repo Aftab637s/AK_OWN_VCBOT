@@ -1,6 +1,6 @@
 # 🎵 AK Music Bot
 
-My own custom Telegram Music Bot. No StrangerAPI, No Errors. 🚀
+My own custom Telegram Music Bot, No Errors. 🚀
 
 ## ✨ Deploy to Heroku
 
