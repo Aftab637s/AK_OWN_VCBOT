@@ -5,16 +5,15 @@ from pytgcalls.types import MediaStream
 import yt_dlp
 from config import API_ID, API_HASH, BOT_TOKEN, SESSION_STRING
 
-# --- Clients Setup ---
 bot = Client("MusicBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 user = Client("MusicAssistant", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
 call_py = PyTgCalls(user)
 
-# --- Smart Downloader ---
 def get_audio_url(query):
+    # Change: 'bestaudio/best' ka matlab hai "Jo bhi mile utha lo"
     opts = {
-        'format': 'bestaudio',
+        'format': 'bestaudio/best', 
         'quiet': True,
         'noplaylist': True,
         'geo_bypass': True,
@@ -29,7 +28,7 @@ def get_audio_url(query):
         try:
             info = ydl.extract_info(query, download=False)
         except Exception:
-            # Backup format
+            # Fallback agar pehla fail ho jaye
             opts['format'] = 'worstaudio'
             with yt_dlp.YoutubeDL(opts) as ydl_backup:
                 info = ydl_backup.extract_info(query, download=False)
@@ -39,7 +38,6 @@ def get_audio_url(query):
             
         return info['url'], info.get('title', 'Unknown Song')
 
-# --- Play Command ---
 @bot.on_message(filters.command("play") & filters.group)
 async def play_music(client, message):
     if not message.reply_to_message and len(message.command) < 2:
@@ -61,15 +59,13 @@ async def play_music(client, message):
     except Exception as e:
         await msg.edit_text(f"❌ **Error:** {e}")
 
-# --- Start Bot (Fixed Loop) ---
 async def start_bot():
     print("--- STARTING BOT... ---")
     await bot.start()
     await user.start()
     await call_py.start()
-    print("--- BOT IS ONLINE & READY! 🎵 ---")
+    print("--- BOT ONLINE ---")
     await idle()
-    print("--- BOT STOPPED ---")
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
